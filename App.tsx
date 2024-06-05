@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: 150, // Defina a largura para garantir que haja espaço suficiente entre os botões
+    width: 150,
   },
   buttonTextConcluir: {
     color: "green",
