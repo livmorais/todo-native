@@ -1,28 +1,28 @@
-import 'react-native-url-polyfill/auto';
 import React, { useEffect, useState } from "react";
-import { Text, Button, SafeAreaView, ScrollView, TextInput, TouchableOpacity, View, StyleSheet } from "react-native";
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-interface Task {
-  id: number;
-  task: string;
-  completed: boolean;
-}
+import TaskInput from './components/TaskInput';
+import TaskItem from './components/TaskItem';
+import { Task } from './interface/Task';
 
 export default function App() {
-  const [newTask, setNewTask] = useState("");
+  const [newTask, setNewTask] = useState<string>("");
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  const fetchTasks = async () => {
-    try {
-      const storedTasks = await AsyncStorage.getItem('tasks');
-      if (storedTasks) {
-        setTasks(JSON.parse(storedTasks));
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const storedTasks = await AsyncStorage.getItem('tasks');
+        if (storedTasks) {
+          setTasks(JSON.parse(storedTasks));
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    };
+
+    fetchTasks();
+  }, []);
 
   const saveTasks = async (tasks: Task[]) => {
     try {
@@ -58,48 +58,24 @@ export default function App() {
     await saveTasks(updatedTasks);
   };
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Adicione uma nova tarefa</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Digite aqui..."
-          onChangeText={(text) => setNewTask(text)}
-          value={newTask}
-        />
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => handleAddTask(newTask)}
-        >
-          <Text style={styles.buttonText}>Adicionar</Text>
-        </TouchableOpacity>
-      </View>
+      <TaskInput newTask={newTask} setNewTask={setNewTask} handleAddTask={handleAddTask} />
       <ScrollView>
         {tasks.map((task) => (
-          <View style={styles.task} key={task.id}>
-            <Text style={[styles.textTask, task.completed && styles.completed]}>
-              {task.task}
-            </Text>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={() => updateTask(task.id, !task.completed)}>
-                <Text style={styles.buttonTextConcluir}>Concluir</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => deleteTask(task.id)}>
-                <Text style={styles.buttonTextExcluir}>Excluir</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <TaskItem 
+            key={task.id} 
+            task={task} 
+            updateTask={updateTask} 
+            deleteTask={deleteTask} 
+          />
         ))}
       </ScrollView>
     </SafeAreaView>
   );
-  
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -110,66 +86,5 @@ const styles = StyleSheet.create({
     fontSize: 32,
     marginBottom: 20,
     color: "#333",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#CCC",
-    padding: 10,
-    fontSize: 18,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  button: {
-    backgroundColor: "#007bff",
-    padding: 10,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    textAlign: "center",
-  },
-  task: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 15,
-    marginBottom: 10,
-    backgroundColor: "#fff",
-    borderRadius: 5,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  textTask: {
-    flex: 1,
-    fontSize: 18,
-  },
-  completed: {
-    textDecorationLine: "line-through",
-    color: "#888",
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: 150,
-  },
-  buttonTextConcluir: {
-    color: "green",
-    fontSize: 18,
-  },
-  buttonTextExcluir: {
-    color: "red",
-    fontSize: 18,
   },
 });
